@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energie, která hýbe světem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens ===== */
+:root{
+  --black:#050506; --graphite:#14161a; --graphite-2:#1d2026;
+  --amber:#ffa21f; --amber-dim:#c77a0b; --cyan:#27d6f5;
+  --text:#f4f5f7; --muted:#a3a9b3; --line:rgba(255,255,255,.12);
+  --display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--black)}
+body{font-family:var(--body);color:var(--text);background:var(--black);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+
+/* ===== Hero ===== */
+.hero{position:relative;min-height:100svh;overflow:hidden;display:flex;align-items:flex-end;
+  background:radial-gradient(120% 80% at 70% 100%,#1a1208 0%,var(--black) 60%)}
+.scene{position:absolute;left:0;right:0;bottom:0;width:100%;height:52%;opacity:0;transition:opacity 2.2s ease}
+.flame{transform-origin:center;animation:flare 3.2s ease-in-out infinite}
+@keyframes flare{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.18)}}
+#chart{position:absolute;inset:0;width:100%;height:100%;opacity:.7;pointer-events:none}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(5,5,6,.88) 0%,rgba(5,5,6,.35) 55%,rgba(5,5,6,.65) 100%),
+             linear-gradient(0deg,rgba(5,5,6,.75) 0%,transparent 40%)}
+.wrap{position:relative;z-index:3;width:100%;max-width:1320px;margin:0 auto;
+  padding:clamp(96px,14vh,160px) clamp(20px,5vw,64px) clamp(40px,8vh,88px);
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:clamp(32px,5vw,80px);align-items:end}
+
+h1{font-family:var(--display);font-weight:800;font-size:clamp(3.2rem,10vw,8.6rem);line-height:.9;letter-spacing:.005em;margin-bottom:28px}
+h1 span{display:block;clip-path:inset(0 100% 0 0);transition:clip-path 1s cubic-bezier(.2,.7,.1,1)}
+h1 span+span{transition-delay:.25s}
+.go h1 span{clip-path:inset(0 0 0 0)}
+.lead{font-size:clamp(1.1rem,1.6vw,1.35rem);font-weight:500;max-width:34em;margin-bottom:14px}
+.copy{color:var(--muted);max-width:38em;margin-bottom:36px}
+.fade{opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease}
+.fade.in{opacity:1;transform:none}
+
+.cta{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:34px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 30px;
+  font:600 .85rem/1 var(--body);letter-spacing:.12em;text-transform:uppercase;border-radius:2px;cursor:pointer;
+  transition:background .25s,color .25s,border-color .25s,box-shadow .25s}
+.btn-primary{background:var(--amber);color:#150d00;border:1px solid var(--amber)}
+.btn-primary:hover{background:#ffb64d;box-shadow:0 0 32px rgba(255,162,31,.45)}
+.btn-ghost{background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--line);backdrop-filter:blur(6px)}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 24px rgba(39,214,245,.25)}
+.tags{display:flex;flex-wrap:wrap;gap:10px 0;color:var(--muted);font-size:.85rem}
+.tags li{list-style:none;padding:0 18px;border-left:1px solid var(--line)}
+.tags li:first-child{padding-left:0;border-left:0}
+
+/* ===== Market panel ===== */
+.panel{border:1px solid var(--line);border-radius:6px;background:linear-gradient(160deg,rgba(29,32,38,.72),rgba(20,22,26,.5));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:18px 18px 14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-weight:600;font-size:.95rem}
+.live{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 0 rgba(255,162,31,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(255,162,31,0)}100%{box-shadow:0 0 0 0 rgba(255,162,31,0)}}
+#tv{min-height:220px}
+#tv .tradingview-widget-container__widget{min-height:220px}
+.status{display:none;min-height:220px;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;color:var(--muted);font-size:.95rem}
+.status.show{display:flex}
+.status .btn{min-height:42px;padding:0 20px}
+.note{margin-top:8px;font-size:.75rem;color:var(--muted)}
+
+/* ===== Block 02: live market ===== */
+:root{--ok:#3ddc84}
+.rv{opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease}
+.rv.in{opacity:1;transform:none}
+.market{padding:clamp(72px,12vh,140px) 0;background:linear-gradient(180deg,var(--black),var(--graphite) 30%,var(--black))}
+.mk{max-width:1320px;margin:0 auto;padding:0 clamp(20px,5vw,64px)}
+.market h2,.market h3{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:.95}
+.market h2{font-size:clamp(2.4rem,6.5vw,5.4rem);margin-bottom:18px}
+.market h3{font-size:clamp(1.6rem,3.2vw,2.4rem);margin-bottom:12px}
+.mk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:32px;margin-bottom:48px}
+.mk-lead{font-size:1.15rem;font-weight:500;max-width:30em;margin-bottom:12px}
+.mk-copy{color:var(--muted);max-width:40em;margin-bottom:12px}
+.mk-live{display:flex;align-items:center;gap:12px;padding:10px 16px;border:1px solid var(--line);border-radius:4px;white-space:nowrap}
+.mk-live strong{display:block;font-size:.8rem;letter-spacing:.12em}
+.mk-live small{color:var(--muted);font-size:.75rem}
+.live.g{background:var(--ok);animation-name:pulseg}
+@keyframes pulseg{70%{box-shadow:0 0 0 9px rgba(61,220,132,0)}100%{box-shadow:0 0 0 0 rgba(61,220,132,0)}}
+.w{position:relative}
+.w .tv-box{position:absolute;inset:0}
+.w .tv-box .tradingview-widget-container__widget{height:100%}
+.w .status{position:absolute;inset:0;min-height:0;padding:16px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:12px}
+.card{position:relative;border:1px solid var(--line);border-radius:6px;background:rgba(29,32,38,.5);
+  transition:opacity .8s ease,transform .8s ease,border-color .25s,box-shadow .25s}
+.card:hover{border-color:rgba(255,255,255,.32)}
+.card.on{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 30px rgba(255,162,31,.2)}
+.card .w{height:150px}
+.pick{position:absolute;inset:0;z-index:2;background:none;border:0;border-radius:6px;cursor:pointer}
+.hint{color:var(--muted);font-size:.8rem;margin-bottom:56px}
+.perf{border:1px solid var(--line);border-radius:8px;background:rgba(14,15,18,.85);padding:clamp(16px,3vw,32px);margin-bottom:96px}
+.bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;margin:14px 0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{min-height:40px;padding:0 16px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:2px;
+  font:600 .8rem var(--body);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.seg button:hover{color:var(--text);border-color:rgba(255,255,255,.35)}
+.seg button[aria-selected=true],.seg button[aria-pressed=true]{background:var(--amber);border-color:var(--amber);color:#150d00}
+#info{height:190px}#chart2{height:540px}#spread{height:400px}
+.vs,.why{display:grid;gap:48px;margin-bottom:96px;align-items:center}
+.vs{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}
+.why{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:start}
+.pulse{list-style:none;margin-bottom:6px}
+.pulse li{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.tag{font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.tag.up{color:var(--ok)}.tag.flat{color:var(--muted)}.tag.vol{color:var(--amber)}
+.outro{text-align:center}
+.outro p{font:800 clamp(1.7rem,3.8vw,2.8rem)/1.05 var(--display);text-transform:uppercase;max-width:18em;margin:0 auto 28px}
+@media (max-width:900px){
+  .mk-head,.vs,.why{grid-template-columns:1fr;flex-direction:column}
+  .cards{grid-template-columns:repeat(2,1fr)}#chart2{height:440px}
+}
+@media (max-width:520px){.cards{grid-template-columns:1fr}.seg button{flex:1}}
+
+/* ===== Block 03: why energy ===== */
+.pw h2{font-size:clamp(3rem,9vw,8rem);margin-bottom:22px}
+.pw-sub{font:800 clamp(1.3rem,2.6vw,2.1rem)/1.1 var(--display);text-transform:uppercase;max-width:22em;margin-bottom:18px}
+.pw-top{margin-bottom:104px}
+.pw-intro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:48px;align-items:start;margin-bottom:72px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:112px}
+.fact{padding:28px 24px;border:1px solid var(--line);border-radius:6px;background:rgba(20,22,26,.6);
+  transition:opacity .8s ease,transform .3s,border-color .25s}
+.fact:hover{border-color:var(--amber);transform:translateY(-4px)}
+.fact svg{width:34px;height:34px;stroke:var(--cyan);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:20px}
+.fact .n{font:800 3.4rem/1 var(--display);color:var(--amber);margin-bottom:8px}
+.fact small{display:block;color:var(--muted);font-size:.75rem;letter-spacing:.1em;margin-bottom:6px}
+.fact h4,.cmp-t h4{font:800 1.5rem/1 var(--display);text-transform:uppercase;margin-bottom:10px}
+.fact p,.cmp-t p,.tl p{color:var(--muted);font-size:.95rem}
+.cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:40px;margin:32px 0 112px}
+.cmp-t{display:grid;gap:16px;align-content:start}
+.cmp-t article{padding:22px;border:1px solid var(--line);border-radius:6px;background:rgba(20,22,26,.6)}
+#cmpchart{height:480px}
+.tl{overflow-x:auto;scroll-snap-type:x mandatory;margin:32px 0 20px;padding-bottom:12px}
+.tl ol{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:24px;position:relative;padding-top:36px}
+.tl ol::before{content:"";position:absolute;top:8px;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--cyan),var(--amber))}
+.tl li{position:relative;scroll-snap-align:start}
+.tl li::before{content:"";position:absolute;top:-32px;left:0;width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+.tl .y{font:800 2.2rem/1 var(--display);margin-bottom:6px}
+.tl h4{font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.risk{color:var(--muted);font-size:.8rem;max-width:46em;margin-bottom:112px}
+.fin{border:1px solid var(--line);border-radius:10px;padding:clamp(32px,6vw,88px);
+  background:radial-gradient(80% 120% at 100% 100%,rgba(255,162,31,.18),transparent 60%),#0b0c0e}
+.fin small{display:block;color:var(--muted);letter-spacing:.14em;font-size:.8rem;margin-bottom:16px}
+.fin h3{font-size:clamp(2.4rem,6vw,5rem)}
+.acts{display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin-top:28px}
+.lnk{color:var(--muted);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
+.lnk:hover{color:var(--cyan)}
+@media (max-width:900px){
+  .pw-intro,.cmp{grid-template-columns:1fr}.facts{grid-template-columns:repeat(2,1fr)}#cmpchart{height:400px}
+  .tl ol{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:78%}
+}
+@media (max-width:520px){.facts{grid-template-columns:1fr}}
+
+/* ===== Blocks 04-05: how trading works, personal support ===== */
+.f3{grid-template-columns:repeat(3,1fr)}
+.ex{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:32px;border:1px solid var(--line);border-radius:8px;
+  background:rgba(14,15,18,.85);padding:clamp(18px,3vw,36px);margin:28px 0 24px}
+.ex-h{display:flex;flex-wrap:wrap;align-items:center;gap:12px;grid-column:1/-1}
+.ex-h b{font:800 1.6rem var(--display);text-transform:uppercase}
+.pill{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber);border-radius:99px;padding:4px 12px}
+.fld{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.fld label{display:grid;gap:6px;color:var(--muted);font-size:.8rem}
+.fld input{min-height:44px;padding:0 12px;background:var(--graphite);color:var(--text);border:1px solid var(--line);border-radius:2px;font:500 1rem var(--body)}
+.res{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.res div{border:1px solid var(--line);border-radius:4px;padding:12px}
+.res small,.big small{display:block;color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
+.res strong{font-size:1.05rem}
+.big{border:1px solid var(--line);border-radius:4px;padding:16px;background:rgba(255,255,255,.03)}
+.big strong{font:800 2.8rem/1.1 var(--display)}
+.gain{color:var(--ok)}.loss{color:#ff6b6b}
+.err{color:#ff6b6b;font-size:.85rem;margin-bottom:10px}
+#px svg{width:100%;height:auto;display:block}
+#px .ln{fill:none;stroke:var(--amber);stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 0 6px rgba(255,162,31,.6))}
+#px text{fill:var(--muted);font:12px var(--body)}
+#px .dot{fill:var(--cyan)}#px #xd{opacity:0;transition:opacity .4s}#px #xd.on{opacity:1}
+.warn{border-left:3px solid var(--amber);padding-left:16px;margin:40px 0 104px}
+.pc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:48px;align-items:start}
+.av{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font:800 1.7rem var(--display);color:#150d00;background:linear-gradient(135deg,var(--amber),var(--cyan));margin-bottom:16px}
+.quote{margin-top:16px;font-size:1.05rem;font-weight:500}
+.steps{list-style:none;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding:18px 0 18px 56px;border-top:1px solid var(--line)}
+.steps li::before{content:counter(s);position:absolute;left:0;top:12px;font:800 2rem var(--display);color:var(--amber)}
+.steps h4{font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.steps p{color:var(--muted);font-size:.95rem}
+@media (max-width:900px){.ex,.pc{grid-template-columns:1fr}.f3{grid-template-columns:1fr}}
+@media (max-width:520px){.res{grid-template-columns:1fr}.fld{grid-template-columns:1fr}}
+
+/* ===== Blocks 06-07: testimonials, calculator ===== */
+.tm .ph{width:56px;height:56px;border-radius:50%;display:block}
+.tm .q{margin:16px 0;color:var(--text);font-size:.98rem}
+.tm strong{display:block}.tm small{color:var(--muted)}
+.cap{color:var(--muted);font-size:.8rem;margin:-88px 0 104px}
+input[type=range]{accent-color:var(--amber);width:100%;min-height:32px}
+.lv{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem}.lv b{color:var(--text)}
+.act2{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+#calc svg{width:100%;height:auto;display:block;margin-top:14px}
+#calc .ln{fill:none;stroke:var(--amber);stroke-width:2.5;stroke-linejoin:round}
+#calc .ln.up{stroke:var(--ok)}#calc .ln.dn{stroke:#ff6b6b}
+#calc .base{stroke:var(--line);stroke-dasharray:4 5}
+#calc text{fill:var(--muted);font:12px var(--body)}
+#calc #c-dir{fill:var(--amber);font:700 13px var(--body)}
+#calc .dot{fill:var(--cyan)}
+
+/* ===== Block 08: FAQ ===== */
+.faq{max-width:920px;margin-bottom:96px}
+.faq details{border-top:1px solid var(--line)}
+.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:20px;padding:22px 0;font-weight:600;font-size:1.1rem;transition:color .2s}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:hover{color:var(--cyan)}
+.faq .n{font:800 1.6rem var(--display);color:var(--amber);min-width:2.2rem}
+.faq summary::after{content:"+";margin-left:auto;font-size:1.7rem;line-height:1;color:var(--cyan);transition:transform .25s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{color:var(--muted);padding:0 40px 24px 56px;max-width:48em}
+.who{display:flex;align-items:center;gap:16px;margin-top:24px}
+.who .av{margin:0;width:56px;height:56px;font-size:1.3rem;flex:none}
+.who strong{display:block}.who small{color:var(--muted)}
+@media (max-width:520px){.faq details p{padding:0 0 24px}}
+
+/* ===== Block 09: final CTA and footer ===== */
+.cta9{position:relative;overflow:hidden;padding:clamp(88px,14vh,160px) 0 0;background:radial-gradient(120% 80% at 70% 100%,#1a1208 0%,var(--black) 60%)}
+.cta9 .scene{opacity:1;height:46%}
+.cta9 canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.v9{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(5,5,6,.86),rgba(5,5,6,.3) 60%,rgba(5,5,6,.7)),linear-gradient(0deg,rgba(5,5,6,.85),transparent 45%)}
+.glow9{position:absolute;inset:-20%;pointer-events:none;animation:drift 18s ease-in-out infinite alternate;
+  background:radial-gradient(40% 40% at 25% 70%,rgba(255,162,31,.18),transparent),radial-gradient(35% 35% at 80% 30%,rgba(39,214,245,.14),transparent)}
+@keyframes drift{to{transform:translate(4%,-3%) scale(1.08)}}
+.w9{position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);gap:clamp(32px,5vw,80px);align-items:start;padding-bottom:96px}
+.cta9 .cta{margin:28px 0 24px}
+.glass{background:rgba(20,22,26,.55);border:1px solid var(--line);border-radius:10px;padding:clamp(20px,3vw,36px);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.frm label{display:grid;gap:6px;color:var(--muted);font-size:.8rem;margin-bottom:4px}
+.frm input:not([type=checkbox]),.frm textarea{width:100%;min-height:46px;padding:10px 12px;background:rgba(5,5,6,.6);color:var(--text);border:1px solid var(--line);border-radius:2px;font:400 1rem var(--body)}
+.frm textarea{min-height:110px;resize:vertical}
+.frm input[aria-invalid=true],.frm textarea[aria-invalid=true]{border-color:#ff6b6b}
+.frm .e{color:#ff6b6b;font-size:.78rem;min-height:1.1em;margin-bottom:6px}
+.frm .chk{display:flex;gap:10px;align-items:flex-start;font-size:.85rem}
+.frm .chk input{width:18px;height:18px;margin-top:3px;accent-color:var(--amber);flex:none}
+.frm .btn{width:100%;margin-top:10px}
+.frm [hidden]{display:none!important}
+.foot{position:relative;z-index:3;border-top:1px solid var(--line);background:rgba(5,5,6,.9);padding:32px 0 40px}
+.foot .mk{display:grid;gap:18px}
+.foot nav{display:flex;flex-wrap:wrap;gap:8px 24px}
+.foot a{color:var(--muted);font-size:.85rem;transition:color .2s}.foot a:hover{color:var(--cyan)}
+.foot p{color:var(--muted);font-size:.78rem;max-width:62em}
+@media (max-width:900px){.w9{grid-template-columns:1fr}}
+
+/* ===== Header ===== */
+html{scroll-padding-top:76px}
+.top{position:fixed;top:0;left:0;right:0;z-index:50}
+.top::before{content:"";position:absolute;inset:0;background:rgba(5,5,6,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);opacity:0;transition:opacity .3s}
+.top.s::before{opacity:1}
+.top-in{position:relative;max-width:1320px;margin:0 auto;padding:14px clamp(20px,5vw,64px);display:flex;align-items:center;gap:24px}
+.logo{position:relative;z-index:3;display:flex;align-items:center;gap:10px;font:800 1.5rem var(--display);letter-spacing:.06em;text-transform:uppercase}
+.logo i{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+.menu{display:flex;align-items:center;gap:4px;margin-left:auto}
+.menu a{padding:8px 12px;font-size:.85rem;color:var(--muted);transition:color .2s}
+.menu a:hover,.menu a.on{color:var(--text)}
+.menu a.on{box-shadow:inset 0 -2px var(--amber)}
+.menu a.btn{min-height:40px;padding:0 20px;margin-left:12px;color:#150d00;box-shadow:none}
+.menu a.btn:hover{color:#150d00}
+.burger{display:none;position:relative;z-index:3;margin-left:auto;width:44px;height:44px;background:none;border:1px solid var(--line);border-radius:2px;color:var(--text);cursor:pointer}
+.burger span,.burger span::before,.burger span::after{display:block;width:20px;height:2px;background:currentColor;margin:auto;position:relative;transition:transform .25s,background .25s}
+.burger span::before,.burger span::after{content:"";position:absolute;left:0}
+.burger span::before{top:-6px}.burger span::after{top:6px}
+.burger[aria-expanded=true] span{background:transparent}
+.burger[aria-expanded=true] span::before{transform:translateY(6px) rotate(45deg)}
+.burger[aria-expanded=true] span::after{transform:translateY(-6px) rotate(-45deg)}
+body.mo{overflow:hidden}
+@media (max-width:1100px){
+  .burger{display:block}
+  .menu{position:fixed;inset:0;z-index:2;flex-direction:column;align-items:stretch;justify-content:center;gap:4px;margin:0;padding:88px 28px 32px;
+    background:rgba(5,5,6,.97);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+  .menu.open{opacity:1;visibility:visible}
+  .menu a{font:800 2rem var(--display);text-transform:uppercase;padding:10px 0;color:var(--text)}
+  .menu a.on{box-shadow:none;color:var(--amber)}
+  .menu a.btn{font:600 .9rem var(--body);margin:16px 0 0;min-height:52px;padding:0 20px}
+}
+
+/* ===== Anita portrait ===== */
+.av.photo{background:url(data:image/jpeg;base64,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) center/cover;color:transparent;font-size:0}
+.panel>.av.photo{width:112px;height:112px;margin-bottom:20px}
+
+/* ===== Calculator v2 ===== */
+.c2{border:1px solid var(--line);border-radius:14px;padding:clamp(20px,3.5vw,44px);margin:0 0 24px;
+  background:radial-gradient(70% 90% at 100% 0,rgba(255,162,31,.12),transparent 60%),radial-gradient(60% 80% at 0 100%,rgba(39,214,245,.09),transparent 60%),rgba(14,15,18,.92);
+  box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.c2-bar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.c2-bar b{font:800 1.6rem var(--display);text-transform:uppercase}
+.c2-hero{padding:clamp(18px,3vw,32px);border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:32px}
+.c2-hero label{color:var(--muted);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}
+.c2-inp{display:flex;align-items:baseline;gap:12px;margin:6px 0 20px}
+.c2-inp input{width:min(100%,6.4em);background:none;border:0;border-bottom:1px solid var(--line);color:var(--text);font:800 clamp(2.8rem,7vw,5rem)/1.05 var(--display);padding:0}
+.c2-inp input:focus{outline:none;border-color:var(--amber)}
+.c2-inp span{font:800 1.6rem var(--display);color:var(--amber)}
+.c2-rng{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:99px;cursor:pointer;
+  background:linear-gradient(90deg,var(--amber) var(--p,20%),rgba(255,255,255,.12) var(--p,20%))}
+.c2-rng::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#150d00;border:3px solid var(--amber);
+  box-shadow:0 0 0 6px rgba(255,162,31,.18),0 0 22px rgba(255,162,31,.6)}
+.c2-rng::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#150d00;border:3px solid var(--amber);box-shadow:0 0 22px rgba(255,162,31,.6)}
+.c2-rng::-moz-range-track{background:transparent}
+.c2-sc{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem;margin-top:12px}
+.c2-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,56px)}
+.c2 h4{font:800 1.3rem var(--display);text-transform:uppercase;margin-bottom:14px}
+.c2-grid label{display:grid;gap:6px;color:var(--muted);font-size:.8rem;margin-bottom:14px}
+.c2 input[type=text],.c2 input[type=number]{width:100%;min-height:48px;padding:0 14px;background:rgba(5,5,6,.6);color:var(--text);border:1px solid var(--line);border-radius:3px;font:500 1.05rem var(--body)}
+.c2 input[type=text]:focus,.c2 input[type=number]:focus{outline:none;border-color:var(--amber)}
+.c2 .seg{margin-bottom:14px}
+#k-live{height:112px;margin:0 0 4px}
+.hint2{color:var(--muted);font-size:.78rem;margin-bottom:18px}
+.adv{border-top:1px solid var(--line);padding-top:12px}
+.adv summary{cursor:pointer;color:var(--muted);font-size:.85rem;margin-bottom:12px}
+.c2-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.c2 .c2-two input{min-height:68px;font:800 2.1rem var(--display)}
+.c2 .c2-two input.gain,.c2 .res .gain{color:var(--ok)}
+.c2 .c2-two input.loss,.c2 .res .loss{color:#ff6b6b}
+.manual{color:var(--amber);font-size:.8rem;margin:-4px 0 12px}
+.c2-foot{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+.c2-foot p{flex:1;min-width:240px;color:var(--muted);font-size:.82rem}
+@media (max-width:900px){.c2-grid{grid-template-columns:1fr}}
+@media (max-width:520px){.c2-two{grid-template-columns:1fr}}
+
+/* ===== Placeholder anchors ===== */
+.stub{padding:120px clamp(20px,5vw,64px);max-width:1320px;margin:0 auto;border-top:1px solid var(--line)}
+.stub h2{font-family:var(--display);font-weight:800;font-size:clamp(2rem,5vw,3.4rem);margin-bottom:10px}
+.stub p{color:var(--muted)}
+
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;align-items:start;padding-top:120px}
+  .vignette{background:linear-gradient(0deg,rgba(5,5,6,.85) 0%,rgba(5,5,6,.45) 100%)}
+  .scene{height:38%}
+}
+@media (max-width:520px){.btn{width:100%}.tags li{padding:0 12px}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="top" id="top">
+  <div class="top-in">
+    <a class="logo" href="#hero" aria-label="Energie, nahoru"><i aria-hidden="true"></i>Energie</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Otevřít menu"><span></span></button>
+    <nav class="menu" id="menu" aria-label="Hlavní navigace">
+      <a href="#trh">Trh</a><a href="#proc-energie">Proč energie</a><a href="#jak-to-funguje">Jak to funguje</a><a href="#podpora">Podpora</a><a href="#reference">Zkušenosti</a><a href="#kalkulacka">Kalkulačka</a><a href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="#formular">Kontakt</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero" id="hero">
+  <svg class="scene" viewBox="0 0 1600 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffa21f" stop-opacity="0"/><stop offset="1" stop-color="#ffa21f" stop-opacity=".18"/>
+      </linearGradient>
+      <radialGradient id="fl"><stop offset="0" stop-color="#fff2c9"/><stop offset=".4" stop-color="#ffa21f"/><stop offset="1" stop-color="#ffa21f" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="1600" height="360" fill="url(#glow)"/>
+    <g fill="#0b0c0f" stroke="#0b0c0f">
+      <rect x="0" y="300" width="1600" height="60" stroke="none"/>
+      <path d="M90 300 L125 268 L560 268 L610 300Z" stroke="none"/><rect x="470" y="238" width="60" height="30" stroke="none"/>
+      <rect x="880" y="190" width="46" height="110" stroke="none"/><rect x="940" y="150" width="34" height="150" stroke="none"/>
+      <rect x="990" y="210" width="90" height="90" stroke="none"/><rect x="1100" y="170" width="40" height="130" stroke="none"/>
+      <rect x="1180" y="230" width="120" height="70" stroke="none"/><rect x="1320" y="110" width="7" height="190" stroke="none"/>
+      <path d="M926 215H990M974 180H1100M1080 250H1180M1140 200H1320" fill="none" stroke-width="5"/>
+    </g>
+    <circle class="flame" cx="1323" cy="98" r="22" fill="url(#fl)"/>
+    <g fill="#ffa21f" opacity=".85">
+      <circle cx="140" cy="283" r="2"/><circle cx="260" cy="283" r="2"/><circle cx="500" cy="252" r="2"/>
+      <circle cx="898" cy="214" r="2"/><circle cx="957" cy="190" r="2"/><circle cx="1030" cy="236" r="2"/><circle cx="1119" cy="205" r="2"/><circle cx="1240" cy="255" r="2"/>
+    </g>
+  </svg>
+  <canvas id="chart" aria-hidden="true"></canvas>
+  <div class="vignette"></div>
+
+  <div class="wrap">
+    <div>
+      <h1><span>Energie, která</span><span>hýbe světem.</span></h1>
+      <p class="lead fade">Objevte moderní přístup k obchodování na energetických trzích.</p>
+      <p class="copy fade">Ropa, plyn a další klíčové komodity patří mezi nejdynamičtější trhy světové ekonomiky. Sledujte aktuální vývoj cen, analyzujte tržní data a objevujte příležitosti, které přináší pohyb globálního trhu.</p>
+      <div class="cta fade">
+        <a class="btn btn-primary" href="#trh">Prozkoumat trh</a>
+        <a class="btn btn-ghost" href="#jak-to-funguje">Jak to funguje</a>
+      </div>
+      <ul class="tags fade">
+        <li>Live Market Data</li><li>Energy Trading</li><li>Market Intelligence</li>
+      </ul>
+    </div>
+
+    <aside class="panel fade" id="panel" aria-label="Tržní data">
+      <div class="panel-head"><span class="live" aria-hidden="true"></span>Tržní data</div>
+      <div id="tv"></div>
+      <div class="status" id="status" role="status" aria-live="polite">
+        <p id="status-text">Načítám tržní data…</p>
+        <button class="btn btn-ghost" id="retry" type="button" hidden>Zkusit znovu</button>
+      </div>
+      <p class="note">Data poskytuje TradingView. Ceny mohou být zpožděné.</p>
+    </aside>
+  </div>
+</header>
+
+<!-- Zástupné kotvy pro tlačítka v hero; obsah doplníme v dalších blocích -->
+<section class="market" id="trh">
+  <div class="mk">
+    <div class="mk-head">
+      <div class="rv">
+        <h2>Trh, který se mění každou sekundu.</h2>
+        <p class="mk-lead">Sledujte vývoj klíčových energetických komodit v reálném čase.</p>
+        <p class="mk-copy">Ceny energií reagují na nabídku a poptávku, ekonomická data, geopolitické události i změny globálního trhu. Proto je důležité nejen sledovat cenu, ale rozumět jejímu pohybu.</p>
+      </div>
+      <div class="mk-live rv"><span class="live g" aria-hidden="true"></span><div><strong>LIVE MARKET</strong><small>Data aktualizována v reálném čase</small></div></div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+    <p class="hint">Klikněte na kartu a komodita se zobrazí v hlavním grafu.</p>
+
+    <div class="perf rv">
+      <h3>Price performance</h3>
+      <div class="bar">
+        <div class="seg" id="tabs" role="tablist" aria-label="Komodita"></div>
+        <div class="seg" id="types" aria-label="Typ grafu"></div>
+      </div>
+      <div class="w" id="info"></div>
+      <div class="w" id="chart2"></div>
+      <div class="bar"><div class="seg" id="ranges" aria-label="Časové období"></div></div>
+    </div>
+
+    <div class="vs">
+      <div class="rv">
+        <h3>Brent vs WTI</h3>
+        <p class="mk-lead">Jak se vyvíjí rozdíl mezi dvěma nejvýznamnějšími ropnými benchmarky?</p>
+        <p class="mk-copy">Graf ukazuje spread Brent − WTI. Aktuální hodnotu rozdílu najdete v legendě grafu.</p>
+      </div>
+      <div class="w" id="spread"></div>
+    </div>
+
+    <div class="why">
+      <div class="rv">
+        <h3>Proč sledovat pohyb cen?</h3>
+        <p class="mk-copy">Cena ropy není konstantní. Mění se v závislosti na globální nabídce a poptávce, zásobách, ekonomické aktivitě, geopolitické situaci a dalších faktorech.</p>
+        <p class="mk-copy">Právě tyto pohyby vytvářejí prostředí, ve kterém mohou obchodníci hledat potenciální příležitosti.</p>
+        <p class="mk-copy">Naším cílem není předpovídat každý pohyb trhu. Cílem je pracovat s dostupnými daty, rozumět dynamice trhu a rozhodovat se na základě konkrétní situace.</p>
+      </div>
+      <aside class="panel rv" aria-label="Market pulse">
+        <h3>Market pulse</h3>
+        <ul class="pulse" id="pulse"></ul>
+        <p class="note">Redakční přehled, nejde o investiční doporučení.</p>
+      </aside>
+    </div>
+
+    <div class="outro rv">
+      <p>Cena je pouze začátek. Důležité je pochopit, co stojí za jejím pohybem.</p>
+      <a class="btn btn-ghost" href="#proc-energie">Discover the strategy ↓</a>
+    </div>
+  </div>
+</section>
+<section class="market pw" id="proc-energie">
+  <div class="mk">
+    <div class="pw-top rv">
+      <h2>The power behind the world</h2>
+      <p class="pw-sub">Energie pohání svět. Trh vytváří příležitosti.</p>
+      <p class="mk-copy">Energetické komodity patří mezi klíčové součásti globální ekonomiky. Jejich ceny se neustále mění v reakci na světové události, průmyslovou poptávku a vývoj nabídky.</p>
+      <ul class="tags"><li>Global Energy Market</li><li>Market Dynamics</li><li>Opportunity</li></ul>
+    </div>
+
+    <div class="pw-intro">
+      <h3 class="rv">Energie je víc než jen komodita.</h3>
+      <div class="rv">
+        <p class="mk-copy">Energetický trh patří mezi nejdůležitější pilíře světové ekonomiky. Ropa, zemní plyn a další energetické suroviny ovlivňují dopravu, průmysl, výrobu i každodenní život miliard lidí.</p>
+        <p class="mk-copy">Přestože se svět postupně mění a rozvíjí nové zdroje energie, ropa zůstává zásadní součástí globálního hospodářství.</p>
+        <p class="mk-copy">Právě propojení globální poptávky, nabídky, geopolitiky a ekonomického vývoje vytváří dynamické prostředí, ve kterém se ceny energetických komodit neustále vyvíjejí.</p>
+      </div>
+    </div>
+
+    <div class="facts">
+      <article class="fact rv"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
+        <div class="n">01</div><small>GLOBAL DEMAND</small><h4>Globální poptávka</h4>
+        <p>Ropa zůstává důležitou surovinou pro dopravu, petrochemický průmysl a výrobu. Vývoj světové ekonomiky proto ovlivňuje její spotřebu.</p></article>
+      <article class="fact rv"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M7 20h10M5 7h14M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0z"/></svg>
+        <div class="n">02</div><small>SUPPLY &amp; DEMAND</small><h4>Nabídka a poptávka</h4>
+        <p>Změny produkce, zásob a spotřeby mohou ovlivňovat rovnováhu na trhu a způsobovat cenové výkyvy.</p></article>
+      <article class="fact rv"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>
+        <div class="n">03</div><small>GEOPOLITICAL FACTORS</small><h4>Geopolitické vlivy</h4>
+        <p>Mezinárodní vztahy, obchodní omezení a geopolitické události mohou výrazně ovlivnit dostupnost energetických surovin.</p></article>
+      <article class="fact rv"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 14l4-6 4 8 4-12 4 10 4-4"/></svg>
+        <div class="n">04</div><small>MARKET VOLATILITY</small><h4>Tržní volatilita</h4>
+        <p>Ceny energetických komodit reagují na nové informace a ekonomické události. Jejich pohyb vytváří prostor pro obchodní strategie, ale zároveň přináší riziko.</p></article>
+    </div>
+
+    <h3 class="rv">Dva trhy. Jedna komodita. Odlišná dynamika.</h3>
+    <div class="cmp">
+      <div class="cmp-t rv">
+        <article><h4>Brent Crude Oil</h4><p>Brent představuje jeden z hlavních světových referenčních ukazatelů ceny ropy. Jeho vývoj je důležitý zejména pro evropský a mezinárodní energetický trh.</p></article>
+        <article><h4>WTI Crude Oil</h4><p>West Texas Intermediate (WTI) je významný americký ropný benchmark. Jeho cena reaguje mimo jiné na vývoj americké produkce, zásob a domácí poptávky.</p></article>
+        <article><h4>Proč sledovat oba trhy?</h4><p>Srovnání cen Brentu a WTI umožňuje sledovat rozdíly mezi jednotlivými regionálními trhy a lépe porozumět globálnímu vývoji cen ropy.</p></article>
+      </div>
+      <div class="w" id="cmpchart"></div>
+    </div>
+
+    <h3 class="rv">Energy through time</h3>
+    <p class="mk-copy">Historická časová osa 1973–2026.</p>
+    <div class="tl rv" tabindex="0" role="region" aria-label="Historická časová osa">
+      <ol>
+        <li><div class="y">1973</div><h4>Ropná krize</h4><p>Ropná krize ukázala, jak výrazně mohou geopolitické události ovlivnit světové energetické trhy.</p></li>
+        <li><div class="y">2000–2010</div><h4>Růst globální poptávky</h4><p>Rozvoj průmyslu a rostoucí spotřeba energie změnily dynamiku světového trhu s ropou.</p></li>
+        <li><div class="y">2020</div><h4>Mimořádné tržní výkyvy</h4><p>Pandemie COVID-19 přinesla historické změny v poptávce po ropě a výrazné cenové pohyby.</p></li>
+        <li><div class="y">2022</div><h4>Geopolitické změny</h4><p>Válka na Ukrajině a změny energetických toků výrazně ovlivnily evropský energetický trh.</p></li>
+        <li><div class="y">Today</div><h4>Nová energetická éra</h4><p>Energetická transformace, globální obchod a technologický vývoj nadále ovlivňují budoucnost energetických trhů.</p></li>
+      </ol>
+    </div>
+    <p class="risk">Historické události slouží jako kontext, nikoli jako záruka budoucího vývoje cen. Obchodování s komoditami nese riziko ztráty.</p>
+
+    <div class="fin rv">
+      <small>FROM MARKET KNOWLEDGE TO TRADING STRATEGY</small>
+      <h3>Rozumět trhu je první krok.</h3>
+      <p class="mk-copy" style="margin-top:18px">Samotný pohyb cen je pouze začátek. Klíčem je pochopit, jak trh funguje, jak vznikají cenové rozdíly a jak lze tyto informace využít při obchodování.</p>
+      <div class="acts">
+        <a class="btn btn-primary" href="#jak-to-funguje">Poznat obchodní princip</a>
+        <a class="lnk" href="#jak-to-funguje">Discover the strategy ↓</a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="market pw" id="jak-to-funguje">
+  <div class="mk">
+    <div class="pw-top rv" style="margin-bottom:64px">
+      <p class="mk-copy">UNDERSTAND THE PROCESS</p>
+      <h2 style="font-size:clamp(2.6rem,7vw,6rem)">Jak funguje obchodování s energií?</h2>
+      <p class="pw-sub">Vydělávat na pohybu trhu znamená rozumět změnám cen.</p>
+      <p class="mk-copy">Obchodování s energetickými komoditami umožňuje reagovat na růst i pokles jejich tržních cen. Základem je analýza trhu, správné načasování a řízení rizika.</p>
+    </div>
+
+    <div class="facts f3">
+      <article class="fact rv"><div class="n">01</div><h4>Analýza trhu</h4><p>Sledujte aktuální ceny ropy, ekonomické zprávy a faktory, které mohou ovlivnit nabídku a poptávku.</p></article>
+      <article class="fact rv"><div class="n">02</div><h4>Otevření pozice</h4><p>Podle očekávaného vývoje trhu můžete otevřít nákupní pozici (BUY) nebo prodejní pozici (SELL).</p></article>
+      <article class="fact rv"><div class="n">03</div><h4>Výsledek obchodu</h4><p>Po uzavření pozice se vyhodnotí rozdíl mezi vstupní a výstupní cenou. Výsledek může být ziskový, ale také ztrátový.</p></article>
+    </div>
+
+    <div class="cmp-t" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:64px">
+      <article class="rv"><h4>Marže (margin)</h4><p>Kolik prostředků se používá jako zajištění otevřené obchodní pozice. Nemusí jít o plnou hodnotu pozice.</p></article>
+      <article class="rv"><h4>Páka (leverage)</h4><p>Umožňuje kontrolovat větší tržní expozici ve srovnání s vlastními prostředky, ale zároveň zvětšuje potenciální zisk i potenciální ztrátu.</p></article>
+    </div>
+
+    <div class="fin rv" style="margin-top:96px">
+      <small>KNOWLEDGE IS THE FIRST STEP</small>
+      <h3>Trh se neustále mění. Vaše rozhodnutí by měla vycházet z dat.</h3>
+      <p class="mk-copy" style="margin-top:18px">Pochopení principů obchodování je základem každé strategie. Dalším krokem je naučit se analyzovat trh a pracovat s dostupnými informacemi.</p>
+      <div class="acts"><a class="lnk" href="#podpora">Discover the strategy ↓</a></div>
+    </div>
+    <p class="risk warn">Upozornění: Obchodování s finančními instrumenty je spojeno s rizikem ztráty kapitálu. Použití marže a finanční páky může ztráty výrazně zvýšit. Konkrétní vlastnosti obchodování závisí na typu instrumentu, jeho smluvních podmínkách a poplatcích.</p>
+  </div>
+</section>
+
+<section class="market pw" id="podpora">
+  <div class="mk">
+    <div class="pw-top rv">
+      <p class="mk-copy">MORE THAN JUST TRADING</p>
+      <h2 style="font-size:clamp(2.6rem,7vw,6rem)">Na trhu nemusíte být sami.</h2>
+      <p class="pw-sub">Zkušenosti získáváte postupně. Podporu máte od začátku.</p>
+      <p class="mk-copy">Začít se orientovat na finančních trzích nemusí být složité. Náš přístup je založen na individuální komunikaci, srozumitelném vysvětlení obchodních principů a podpoře při jednotlivých krocích spolupráce.</p>
+    </div>
+
+    <div class="facts">
+      <article class="fact rv"><h4>Individuální přístup</h4><p>Komunikace přizpůsobená vašim zkušenostem, potřebám a očekáváním.</p></article>
+      <article class="fact rv"><h4>Osobní podpora</h4><p>Možnost konzultovat jednotlivé kroky s přiděleným specialistou.</p></article>
+      <article class="fact rv"><h4>Srozumitelné vysvětlení</h4><p>Nemusíte znát všechny odborné pojmy. Důležité je rozumět základním principům a rizikům.</p></article>
+      <article class="fact rv"><h4>Průběžné informace</h4><p>Přístup k informacím o vývoji trhu a vysvětlení dostupných obchodních možností.</p></article>
+    </div>
+
+    <div class="pc">
+      <aside class="panel rv" aria-label="Osobní kontakt">
+        <div class="av photo" role="img" aria-label="Anita Malinová"></div>
+        <p class="mk-copy" style="margin-bottom:4px">PERSONAL CONTACT</p>
+        <h3>Anita Malinová</h3>
+        <p class="mk-copy">Osobní komunikace a koordinace spolupráce</p>
+        <p class="quote">„Mým cílem je, abyste rozuměli jednotlivým krokům spolupráce, měli potřebné informace a věděli, na koho se můžete obrátit.“</p>
+      </aside>
+      <div class="rv">
+        <h3>Jak probíhá spolupráce?</h3>
+        <ol class="steps">
+          <li><h4>Úvodní konzultace</h4><p>Seznámíme se s vašimi očekáváními a vysvětlíme základní principy fungování trhu.</p></li>
+          <li><h4>Seznámení s platformou</h4><p>Ukážeme vám dostupné funkce, nástroje a možnosti práce s tržními informacemi.</p></li>
+          <li><h4>Podpora při rozhodování</h4><p>Vysvětlíme dostupné obchodní možnosti a související rizika. Konečná investiční rozhodnutí zůstávají na vás.</p></li>
+          <li><h4>Průběžná komunikace</h4><p>Během spolupráce můžete konzultovat otázky a získávat potřebné informace.</p></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="market pw" id="reference">
+  <div class="mk">
+    <div class="pw-top rv" style="margin-bottom:56px">
+      <h2 style="font-size:clamp(2.6rem,7vw,6rem)">Zkušenosti našich klientů</h2>
+    </div>
+    <div class="facts f3">
+      <article class="fact tm rv">
+        <svg class="ph" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#1d2026"/><path d="M12 64c2-14 12-20 20-20s18 6 20 20z" fill="#2c313a"/><circle cx="32" cy="26" r="11" fill="#c9a27e"/><path d="M20 24c0-9 6-13 12-13s12 4 12 13c-3-5-7-7-12-7s-9 2-12 7z" fill="#3a2a1d"/></svg>
+        <p class="q">„Do projektu jsem vstoupil v květnu a zpočátku jsem měl z obchodování určité obavy. Díky pravidelné komunikaci a vysvětlení jednotlivých kroků jsem se postupně lépe zorientoval. Oceňuji především individuální přístup a trpělivost paní Anity.“</p>
+        <strong>Martin K.</strong><small>Česká republika · Květen 2026</small></article>
+      <article class="fact tm rv">
+        <svg class="ph" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#1d2026"/><path d="M12 64c2-14 12-20 20-20s18 6 20 20z" fill="#27d6f5" opacity=".35"/><path d="M19 28c-1-13 6-19 13-19s14 6 13 19v14c-3 2-5 2-6 0V30H25v12c-1 2-3 2-6 0z" fill="#6b3d1e"/><circle cx="32" cy="28" r="10" fill="#e0b394"/><path d="M22 25c1-7 6-9 10-9s9 2 10 9c-3-3-6-4-10-4s-7 1-10 4z" fill="#6b3d1e"/></svg>
+        <p class="q">„Nejvíce mi pomohlo, že mi někdo dokázal vysvětlit fungování platformy jednoduchým a srozumitelným způsobem. Nemusela jsem všemu rozumět hned od začátku. Komunikace byla příjemná a jednotlivé kroky mi byly vždy vysvětleny.“</p>
+        <strong>Petra M.</strong><small>Slovensko · Červen 2026</small></article>
+      <article class="fact tm rv">
+        <svg class="ph" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#1d2026"/><path d="M12 64c2-14 12-20 20-20s18 6 20 20z" fill="#ffa21f" opacity=".4"/><circle cx="32" cy="26" r="11" fill="#d9b08c"/><path d="M20 25c0-10 6-14 12-14s12 4 12 14c-2-4-6-6-12-6s-10 2-12 6z" fill="#b9b2a5"/></svg>
+        <p class="q">„Oceňuji především osobní přístup a možnost konzultovat své otázky. Spolupráce mi pomohla lépe pochopit, jak fungují energetické trhy. Výsledky obchodování se mohou lišit a riziko je potřeba vždy brát v úvahu.“</p>
+        <strong>Thomas W.</strong><small>Německo · Červenec 2026</small></article>
+    </div>
+    <p class="cap">Portréty jsou ilustrační.</p>
+  </div>
+</section>
+
+<section class="market pw" id="kalkulacka">
+  <div class="mk">
+    <div class="pw-top rv" style="margin-bottom:56px">
+      <p class="mk-copy">CALCULATE YOUR SCENARIO</p>
+      <h2 style="font-size:clamp(2.6rem,7vw,6rem)">Vyzkoušejte si, jak funguje obchodování.</h2>
+      <p class="pw-sub">Každý pohyb ceny může ovlivnit výsledek vaší pozice.</p>
+      <p class="mk-copy">Pomocí interaktivní kalkulačky si můžete vytvořit vlastní modelový scénář a zjistit, jak by se změnil výsledek obchodu při růstu nebo poklesu ceny energetické komodity.</p>
+    </div>
+
+    <div class="c2 rv" id="calc">
+      <div class="c2-bar"><b>Energy trading calculator</b><span class="pill">Demo mode</span></div>
+
+      <div class="c2-hero">
+        <div class="c2-amt">
+          <label for="k-amt">Výše investice</label>
+          <div class="c2-inp"><input id="k-amt" type="text" inputmode="numeric" autocomplete="off"><span>EUR</span></div>
+          <p class="err" id="k-err" hidden>Zadejte částku od 10 000 do 500 000 EUR.</p>
+        </div>
+        <input id="k-rng" class="c2-rng" type="range" min="10000" max="500000" step="1000" aria-label="Výše investice v eurech">
+        <div class="c2-sc"><span>10 000 €</span><span>250 000 €</span><span>500 000 €</span></div>
+      </div>
+
+      <div class="c2-grid">
+        <div>
+          <h4>Nastavení obchodu</h4>
+          <div class="seg" id="c-com" aria-label="Komodita">
+            <button type="button" aria-pressed="true" data-k="brent">Brent</button><button type="button" aria-pressed="false" data-k="wti">WTI</button><button type="button" aria-pressed="false" data-k="gas">Natural Gas</button>
+          </div>
+          <div class="seg" id="c-dirs" aria-label="Směr obchodu">
+            <button type="button" aria-pressed="true" data-d="1">BUY</button><button type="button" aria-pressed="false" data-d="-1">SELL</button>
+          </div>
+          <div class="w" id="k-live"></div>
+          <p class="hint2">Aktuální cena z TradingView. Do pole níže ji můžete přepsat ručně.</p>
+          <label for="k-e">Vstupní cena (USD)<input id="k-e" type="number" step="0.01" min="0"></label>
+          <label for="k-d">Cenový rozdíl, očekávaný pohyb (USD)<input id="k-d" type="number" step="0.01"></label>
+          <details class="adv"><summary>Upřesnit</summary>
+            <label for="k-fx">Kurz EUR/USD (ilustrační)<input id="k-fx" type="number" step="0.01" min="0"></label>
+            <label for="k-lev">Finanční páka <b id="k-lo" style="color:var(--text)">1 : 1</b></label>
+            <input id="k-lev" class="c2-rng" type="range" min="1" max="20" step="1" value="1" aria-label="Finanční páka" style="margin-bottom:16px">
+          </details>
+        </div>
+
+        <div>
+          <h4>Modelový scénář</h4>
+          <div class="c2-two">
+            <label for="k-q">Objem obchodu (<span id="k-u">barely</span>)<input id="k-q" type="text" inputmode="decimal" autocomplete="off"></label>
+            <label for="k-p">Očekávaný zisk (EUR)<input id="k-p" type="text" inputmode="decimal" autocomplete="off"></label>
+          </div>
+          <p class="manual" id="k-man" hidden>Hodnoty upraveny ručně. Změna investice nebo ceny je přepočítá.</p>
+          <div class="res" aria-live="polite">
+            <div><small>Výstupní cena</small><strong id="t-x"></strong></div>
+            <div><small>Hodnota pozice</small><strong id="t-pos"></strong></div>
+            <div><small>Výnos z investice</small><strong id="t-pct"></strong></div>
+          </div>
+          <svg viewBox="0 0 400 190" role="img" aria-label="Modelový vývoj ceny od vstupu do výstupu">
+            <line class="base" x1="24" y1="95" x2="376" y2="95"/>
+            <path class="ln" id="c-ln" d=""/>
+            <circle class="dot" id="c-ec" r="5"/><circle class="dot" id="c-xc" r="5"/>
+            <text id="c-dir"></text><text id="c-et"></text><text id="c-xt" text-anchor="end"></text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="c2-foot">
+        <button class="btn btn-ghost" id="k-reset" type="button" style="min-height:44px">Obnovit příklad</button>
+        <p>Nejde o garantovaný zisk, ale pouze o ilustraci pro lepší pochopení principu. Zjednodušený model lineárního instrumentu před poplatky, spreadem a financováním. Ceny a kurz jsou ilustrační a nepředstavují investiční doporučení ani předpověď výnosu.</p>
+      </div>
+    </div>
+
+    <div class="warn rv" style="margin-top:56px">
+      <h3>Nezapomeňte na rizika</h3>
+      <p class="mk-copy">„Výsledek obchodování závisí na vývoji trhu. Stejný pohyb ceny může při nákupní a prodejní pozici znamenat odlišný výsledek. Finanční páka navíc zvyšuje nejen potenciální zisk, ale také potenciální ztrátu.“</p>
+    </div>
+
+    <div class="fin rv">
+      <small>YOUR MARKET. YOUR DECISIONS.</small>
+      <h3>Pochopte možnosti. Rozhodujte se informovaně.</h3>
+      <p class="mk-copy" style="margin-top:18px">Seznamte se s principy obchodování a zjistěte, jaké možnosti a rizika energetické trhy nabízejí.</p>
+    </div>
+  </div>
+</section>
+
+<section class="market pw" id="faq">
+  <div class="mk">
+    <div class="pw-top rv" style="margin-bottom:56px">
+      <p class="mk-copy">EVERYTHING YOU NEED TO KNOW</p>
+      <h2 style="font-size:clamp(2.6rem,7vw,6rem)">Máte otázky? My máme odpovědi.</h2>
+      <p class="pw-sub">Začněte s jasnou představou o tom, jak spolupráce funguje.</p>
+      <p class="mk-copy">Připravili jsme odpovědi na nejčastější otázky týkající se energetických trhů, obchodování, spolupráce s brokerem a podpory během jednotlivých kroků.</p>
+    </div>
+
+    <div class="faq rv">
+      <details name="faq" open><summary><span class="n">01</span>Musím mít předchozí zkušenosti s obchodováním?</summary>
+        <p>Ne, předchozí zkušenosti nejsou podmínkou pro seznámení s projektem. Základní principy obchodování, fungování platformy a související rizika vám můžeme vysvětlit postupně. Je však důležité, abyste každému rozhodnutí rozuměli a investovali pouze prostředky, jejichž ztrátu si můžete dovolit.</p></details>
+      <details name="faq"><summary><span class="n">02</span>Jak probíhá začátek spolupráce?</summary>
+        <p>Prvním krokem je úvodní konzultace, během které se seznámíte s projektem, jeho fungováním a dostupnými možnostmi. Následně můžete získat informace o platformě, obchodních nástrojích, podmínkách a rizicích. K žádné investici byste neměli přistoupit bez předchozího seznámení s těmito informacemi.</p></details>
+      <details name="faq"><summary><span class="n">03</span>Budu při obchodování spolupracovat s brokerem?</summary>
+        <p>Pokud projekt využívá služeb externího brokera, jeho identita, právní informace, regulatorní status a podmínky poskytovaných služeb musí být klientovi jasně sděleny před zahájením spolupráce. Broker může poskytovat obchodní platformu a související služby podle konkrétního smluvního vztahu.</p></details>
+      <details name="faq"><summary><span class="n">04</span>Musím sám sledovat trh a analyzovat grafy?</summary>
+        <p>Nemusíte být profesionálním analytikem, abyste se mohli seznámit s fungováním trhu. Můžete využít dostupné tržní informace a konzultovat jejich význam se specialistou. Je však důležité vědět, že podpora ani analýza nemohou zaručit správnost předpovědi nebo pozitivní výsledek obchodu.</p></details>
+      <details name="faq"><summary><span class="n">05</span>Jaká jsou rizika obchodování?</summary>
+        <p>Ceny energetických komodit se mohou rychle měnit v důsledku ekonomických, politických a dalších faktorů. Obchodování může vést nejen k zisku, ale také ke ztrátě části nebo celého investovaného kapitálu. Použití finanční páky může případné ztráty ještě zvýšit.</p></details>
+      <details name="faq"><summary><span class="n">06</span>Kdy mohu požádat o výběr finančních prostředků?</summary>
+        <p>Možnost výběru, postup ověření totožnosti, případné poplatky a doba zpracování se řídí podmínkami konkrétního brokera a příslušného obchodního účtu. Tyto informace by měly být klientovi dostupné před vložením prostředků. Samotná žádost o výběr nezaručuje okamžité připsání peněz.</p></details>
+      <details name="faq"><summary><span class="n">07</span>Na koho se mohu obrátit, pokud potřebuji pomoc?</summary>
+        <p>V průběhu spolupráce můžete využít kontaktní osobu nebo zákaznickou podporu uvedenou v oficiálních kontaktních údajích projektu. Můžete se obrátit například s otázkami ohledně platformy, dokumentace nebo základních principů obchodování.</p></details>
+      <details name="faq"><summary><span class="n">08</span>Je možné předem vědět, kolik vydělám?</summary>
+        <p>Ne. Výsledek obchodování nelze předem garantovat. Závisí na vývoji trhu, zvoleném instrumentu, velikosti pozice, nákladech a dalších okolnostech. Modelové výpočty a historické výsledky nepředstavují záruku budoucího výnosu.</p></details>
+    </div>
+
+    <div class="fin rv" id="kontakt">
+      <small>WE ARE HERE TO HELP</small>
+      <h3>Nenašli jste odpověď?</h3>
+      <p class="mk-copy" style="margin-top:18px">Každý začátek přináší otázky. Kontaktujte nás a získejte další informace o projektu, jeho fungování a možnostech spolupráce.</p>
+      <div class="who"><div class="av photo" role="img" aria-label="Anita Malinová"></div><div><strong>Anita Malinová</strong><small>Osobní kontakt pro informace o projektu</small></div></div>
+      <div class="acts">
+        <a class="btn btn-primary" href="https://wa.me/420602855173" target="_blank" rel="noopener">Kontaktujte nás</a>
+        <a class="lnk" href="https://wa.me/420602855173" target="_blank" rel="noopener">WhatsApp: +420 602 855 173</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="market pw cta9" id="kontakt-final">
+  <svg class="scene" viewBox="0 0 1600 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="glow2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa21f" stop-opacity="0"/><stop offset="1" stop-color="#ffa21f" stop-opacity=".18"/></linearGradient>
+      <radialGradient id="fl2"><stop offset="0" stop-color="#fff2c9"/><stop offset=".4" stop-color="#ffa21f"/><stop offset="1" stop-color="#ffa21f" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="1600" height="360" fill="url(#glow2)"/>
+    <g fill="#0b0c0f" stroke="#0b0c0f">
+      <rect x="0" y="300" width="1600" height="60" stroke="none"/>
+      <path d="M90 300 L125 268 L560 268 L610 300Z" stroke="none"/><rect x="470" y="238" width="60" height="30" stroke="none"/>
+      <rect x="880" y="190" width="46" height="110" stroke="none"/><rect x="940" y="150" width="34" height="150" stroke="none"/>
+      <rect x="990" y="210" width="90" height="90" stroke="none"/><rect x="1100" y="170" width="40" height="130" stroke="none"/>
+      <rect x="1180" y="230" width="120" height="70" stroke="none"/><rect x="1320" y="110" width="7" height="190" stroke="none"/>
+      <path d="M926 215H990M974 180H1100M1080 250H1180M1140 200H1320" fill="none" stroke-width="5"/>
+    </g>
+    <circle class="flame" cx="1323" cy="98" r="22" fill="url(#fl2)"/>
+    <g fill="#ffa21f" opacity=".85"><circle cx="140" cy="283" r="2"/><circle cx="260" cy="283" r="2"/><circle cx="500" cy="252" r="2"/><circle cx="898" cy="214" r="2"/><circle cx="957" cy="190" r="2"/><circle cx="1030" cy="236" r="2"/><circle cx="1119" cy="205" r="2"/><circle cx="1240" cy="255" r="2"/></g>
+  </svg>
+  <div class="glow9" aria-hidden="true"></div>
+  <canvas id="c9" aria-hidden="true"></canvas>
+  <div class="v9"></div>
+
+  <div class="mk w9">
+    <div class="rv">
+      <p class="mk-copy">READY TO EXPLORE THE MARKET?</p>
+      <h2 style="font-size:clamp(2.8rem,8vw,7rem)">Váš další krok začíná zde.</h2>
+      <p class="mk-lead">Poznejte možnosti energetických trhů, seznamte se s principem spolupráce a získejte informace přizpůsobené vašim zkušenostem a očekáváním.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#formular">Chci více informací</a>
+        <a class="btn btn-ghost" href="https://wa.me/420602855173" target="_blank" rel="noopener">Kontaktovat Anitu</a>
+      </div>
+      <ul class="tags"><li>Bez závazku</li><li>Osobní komunikace</li><li>Individuální přístup</li></ul>
+      <div class="who" style="margin-top:40px">
+        <div class="av photo" role="img" aria-label="Anita Malinová"></div>
+        <div><small>YOUR PERSONAL CONTACT</small><strong>Anita Malinová</strong><small>Osobní kontakt pro informace o projektu a průběhu spolupráce.</small>
+          <a class="lnk" style="display:inline-block;margin-top:6px" href="https://wa.me/420602855173" target="_blank" rel="noopener">Kontaktovat Anitu →</a></div>
+      </div>
+    </div>
+
+    <form class="glass frm rv" id="formular" novalidate aria-labelledby="frm-h">
+      <div id="ff">
+        <h3 id="frm-h" style="margin-bottom:20px">Získejte více informací</h3>
+        <label for="f-name">Jméno a příjmení<input id="f-name" type="text" autocomplete="name" placeholder="Zadejte své jméno"></label><div class="e" id="e-f-name"></div>
+        <label for="f-mail">E-mail<input id="f-mail" type="email" autocomplete="email" placeholder="vas@email.cz"></label><div class="e" id="e-f-mail"></div>
+        <label for="f-tel">Telefon<input id="f-tel" type="tel" autocomplete="tel" placeholder="+420 ..."></label><div class="e"></div>
+        <label for="f-msg">Vaše zpráva<textarea id="f-msg" placeholder="Napište nám, s čím vám můžeme pomoci..."></textarea></label><div class="e"></div>
+        <label class="chk" for="f-ok"><input id="f-ok" type="checkbox">Souhlasím se zpracováním osobních údajů dle zásad ochrany osobních údajů.</label><div class="e" id="e-f-ok"></div>
+        <button class="btn btn-primary" type="submit">Odeslat poptávku →</button>
+      </div>
+      <div id="thx" tabindex="-1" role="status" hidden>
+        <h3 style="margin-bottom:14px">Děkujeme za váš zájem</h3>
+        <p class="mk-copy">Otevřeli jsme WhatsApp s připravenou zprávou. Stačí ji odeslat a brzy vás budeme kontaktovat.</p>
+        <a class="lnk" id="thx-link" href="#" target="_blank" rel="noopener">Otevřít WhatsApp znovu</a>
+      </div>
+    </form>
+  </div>
+
+  <footer class="foot">
+    <div class="mk">
+      <nav aria-label="Mapa stránky">
+        <a href="#trh">Trh</a><a href="#proc-energie">Proč energie</a><a href="#jak-to-funguje">Jak to funguje</a><a href="#podpora">Podpora</a><a href="#reference">Zkušenosti</a><a href="#kalkulacka">Kalkulačka</a><a href="#faq">FAQ</a>
+      </nav>
+      <p>Obchodování s finančními instrumenty je spojeno s rizikem ztráty kapitálu. Použití marže a finanční páky může ztráty výrazně zvýšit. Kalkulačka a příklady na tomto webu jsou pouze ilustrační a nepředstavují investiční doporučení ani záruku výnosu.</p>
+      <p>Název společnosti, regulatorní informace a zásady ochrany osobních údajů budou doplněny. © 2026</p>
+    </div>
+  </footer>
+</section>
+
+<script>
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(s){return document.querySelector(s)};
+
+  /* ---------- Decorative chart (not real market data) ---------- */
+  var cv = $('#chart'), ctx = cv.getContext('2d'), W, H, dpr;
+  var N = 140, seed = 7, vals = [];
+  function rnd(){ seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  (function(){ var v = 0, trend = 0;
+    for (var i = 0; i < N; i++){ trend += (rnd() - .5) * .18; trend *= .92; v += trend + (rnd() - .5) * .22; vals.push(v); }
+    var mn = Math.min.apply(0, vals), mx = Math.max.apply(0, vals);
+    vals = vals.map(function(x){ return (x - mn) / (mx - mn) - .5; });
+  })();
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function ease(x){ x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
+  var t0 = performance.now();
+  function draw(now){
+    var t = now - t0;
+    var progress = reduce ? 1 : ease((t - 300) / 1500);
+    var amp = reduce ? 1 : ease((t - 1300) / 1400);
+    ctx.clearRect(0, 0, W, H);
+    // faint grid
+    ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (var gx = 0; gx <= W; gx += 120){ ctx.moveTo(gx, 0); ctx.lineTo(gx, H); }
+    for (var gy = H * .12; gy < H; gy += H * .16){ ctx.moveTo(0, gy); ctx.lineTo(W, gy); }
+    ctx.stroke();
+    var base = H * .46, scale = H * .34, count = Math.max(2, Math.floor(progress * N));
+    var g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, '#27d6f5'); g.addColorStop(.55, '#ffa21f'); g.addColorStop(1, '#ffa21f');
+    var pts = [];
+    for (var i = 0; i < count; i++){
+      var x = i / (N - 1) * W;
+      var drift = reduce ? 0 : Math.sin(t * .0004 + i * .12) * 5 * amp;
+      pts.push([x, base - vals[i] * scale * amp + drift]);
+    }
+    if (amp > 0){
+      ctx.beginPath(); pts.forEach(function(p, i){ i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
+      ctx.lineTo(pts[pts.length - 1][0], H); ctx.lineTo(0, H); ctx.closePath();
+      var f = ctx.createLinearGradient(0, base - scale, 0, H);
+      f.addColorStop(0, 'rgba(255,162,31,.14)'); f.addColorStop(1, 'rgba(255,162,31,0)');
+      ctx.fillStyle = f; ctx.fill();
+    }
+    ctx.beginPath(); pts.forEach(function(p, i){ i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
+    ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.shadowColor = 'rgba(255,162,31,.6)'; ctx.shadowBlur = 14; ctx.stroke();
+    ctx.shadowBlur = 0;
+    var last = pts[pts.length - 1];
+    ctx.beginPath(); ctx.arc(last[0], last[1], 4, 0, 7); ctx.fillStyle = '#27d6f5'; ctx.fill();
+    if (!reduce) requestAnimationFrame(draw);
+  }
+  resize(); addEventListener('resize', function(){ resize(); if (reduce) draw(performance.now()); });
+  requestAnimationFrame(draw);
+
+  /* ---------- Load sequence ---------- */
+  function step(ms, fn){ reduce ? fn() : setTimeout(fn, ms); }
+  var fades = document.querySelectorAll('.fade');
+  step(1900, function(){ $('.hero').classList.add('go'); });
+  step(2400, function(){ $('.scene').style.opacity = 1; });
+  step(2700, function(){ fades[0].classList.add('in'); fades[1].classList.add('in'); });
+  step(3200, function(){ $('#panel').classList.add('in'); loadTicker(); });
+  step(3600, function(){ fades[2].classList.add('in'); fades[3].classList.add('in'); });
+
+  /* ---------- TradingView ticker widget with fallback states ---------- */
+  var box = $('#tv'), statusEl = $('#status'), statusText = $('#status-text'), retry = $('#retry');
+  var state = 'idle', timer;
+  var TV_CONFIG = {
+    symbols: [
+      {proName: 'TVC:UKOIL', title: 'Ropa Brent'},
+      {proName: 'TVC:USOIL', title: 'Ropa WTI'},
+      {proName: 'NYMEX:NG1!', title: 'Zemní plyn'}
+    ],
+    colorTheme: 'dark', isTransparent: true, showSymbolLogo: false, locale: 'cs'
+  };
+  var MSG = {
+    loading: 'Načítám tržní data…',
+    offline: 'Jste offline. Tržní data se načtou po obnovení připojení.',
+    error: 'Tržní data se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.'
+  };
+  function setState(s){
+    state = s;
+    statusEl.classList.toggle('show', s !== 'ok');
+    box.style.display = s === 'ok' ? '' : 'none';
+    if (s !== 'ok') statusText.textContent = MSG[s];
+    retry.hidden = s !== 'error';
+  }
+  function loadTicker(){
+    clearTimeout(timer);
+    if (!navigator.onLine){ setState('offline'); return; }
+    setState('loading');
+    box.style.display = 'block'; box.style.visibility = 'hidden'; box.innerHTML = '';
+    var w = document.createElement('div'); w.className = 'tradingview-widget-container__widget';
+    var s = document.createElement('script');
+    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-tickers.js';
+    s.async = true; s.textContent = JSON.stringify(TV_CONFIG);
+    s.onerror = function(){ setState('error'); };
+    var mo = new MutationObserver(function(){
+      var f = box.querySelector('iframe');
+      if (f){ mo.disconnect(); f.addEventListener('load', function(){ clearTimeout(timer); box.style.visibility = ''; setState('ok'); }, {once: true}); }
+    });
+    mo.observe(box, {childList: true, subtree: true});
+    box.append(w, s);
+    timer = setTimeout(function(){ mo.disconnect(); if (state !== 'ok') setState('error'); }, 10000);
+  }
+  retry.addEventListener('click', loadTicker);
+  addEventListener('online', function(){ if (state === 'offline' || state === 'error') loadTicker(); });
+  addEventListener('offline', function(){ if (state !== 'ok') setState('offline'); });
+})();
+</script>
+<script>
+/* Block 02: TradingView widgets, lazy-loaded, with loading/offline/error states */
+(function(){
+  var $ = function(s, r){ return (r || document).querySelector(s); };
+  var SYM = [
+    {name: 'Brent Crude', tab: 'Brent',       s: 'TVC:UKOIL'},
+    {name: 'WTI Crude',   tab: 'WTI',         s: 'TVC:USOIL'},
+    {name: 'Natural Gas', tab: 'Natural Gas', s: 'NYMEX:NG1!'},
+    {name: 'Gold',        tab: 'Gold',        s: 'TVC:GOLD'}
+  ];
+  var RANGES = [['24H','1D','15'], ['7D','5D','60'], ['30D','1M','240'], ['3M','3M','D'], ['1Y','12M','D']];
+  var TYPES = [['Svíčky',1], ['Čára',2], ['Plocha',3]];
+  // Redakční přehled: hodnoty upravujete ručně (Bullish / Neutral / Volatile / High activity)
+  var PULSE = [['Brent','Bullish','up'], ['WTI','Neutral','flat'], ['Zemní plyn','Volatile','vol']];
+  var MSG = {
+    loading: 'Načítám tržní data…',
+    offline: 'Jste offline. Tržní data se načtou po obnovení připojení.',
+    error: 'Tržní data se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.'
+  };
+  var sel = {a: 0, r: 0, t: 1}, ready = false;
+
+  function mount(el, name, cfg){
+    el._m = [name, cfg]; clearTimeout(el._t); if (el._o) el._o.disconnect();
+    var st = $('.status', el);
+    if (!st){
+      el.innerHTML = '<div class="status show" role="status" aria-live="polite"><p></p><button class="btn btn-ghost" type="button" hidden>Zkusit znovu</button></div>';
+      st = $('.status', el);
+      $('button', st).onclick = function(){ mount(el, el._m[0], el._m[1]); };
+    }
+    var old = $('.tv-box', el); if (old) old.remove();
+    function set(s){ el._s = s; st.classList.toggle('show', s !== 'ok'); $('p', st).textContent = MSG[s] || ''; $('button', st).hidden = s !== 'error'; }
+    if (!navigator.onLine){ set('offline'); return; }
+    set('loading');
+    var box = document.createElement('div'); box.className = 'tv-box tradingview-widget-container'; box.style.visibility = 'hidden';
+    var w = document.createElement('div'); w.className = 'tradingview-widget-container__widget';
+    var s = document.createElement('script');
+    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-' + name + '.js'; s.async = true;
+    s.textContent = JSON.stringify(cfg); s.onerror = function(){ set('error'); };
+    box.append(w, s); el.prepend(box);
+    var mo = new MutationObserver(function(){
+      var f = $('iframe', box);
+      if (f){ mo.disconnect(); f.addEventListener('load', function(){ clearTimeout(el._t); box.style.visibility = ''; set('ok'); }, {once: true}); }
+    });
+    mo.observe(box, {childList: true, subtree: true}); el._o = mo;
+    el._t = setTimeout(function(){ mo.disconnect(); if (el._s === 'loading') set('error'); }, 10000);
+  }
+  window.TVmount = mount;
+  addEventListener('online', function(){
+    document.querySelectorAll('.w').forEach(function(el){ if (el._m && (el._s === 'offline' || el._s === 'error')) mount(el, el._m[0], el._m[1]); });
+  });
+
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if (e.isIntersecting){ io.unobserve(e.target); e.target._go(); } });
+  }, {rootMargin: '300px'});
+  function lazy(el, fn){ el._go = fn; io.observe(el); }
+  var rv = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if (e.isIntersecting){ rv.unobserve(e.target); e.target.classList.add('in'); } });
+  }, {threshold: .15});
+
+  var cardsEl = $('#cards'), chartEl = $('#chart2'), infoEl = $('#info'), cards = [];
+  SYM.forEach(function(a, i){
+    var c = document.createElement('div'); c.className = 'card rv'; c.style.transitionDelay = i * 120 + 'ms';
+    c.innerHTML = '<div class="w"></div><button class="pick" type="button" aria-label="Zobrazit v grafu: ' + a.name + '"></button>';
+    cardsEl.appendChild(c); cards.push(c);
+    var box = $('.w', c);
+    lazy(box, function(){
+      mount(box, 'mini-symbol-overview', {symbol: a.s, width: '100%', height: '100%', locale: 'cs', dateRange: '1D',
+        colorTheme: 'dark', isTransparent: true, autosize: true, noTimeScale: true});
+    });
+    $('.pick', c).onclick = function(){ select(i); };
+  });
+
+  function seg(host, items, role, getOn, onPick){
+    items.forEach(function(it, i){
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = it;
+      if (role) b.setAttribute('role', 'tab');
+      b.onclick = function(){ onPick(i); };
+      host.appendChild(b);
+    });
+    host._sync = function(){
+      Array.prototype.forEach.call(host.children, function(b, i){
+        b.setAttribute(role ? 'aria-selected' : 'aria-pressed', getOn() === i);
+      });
+    };
+  }
+  var tabsEl = $('#tabs'), typesEl = $('#types'), rangesEl = $('#ranges');
+  seg(tabsEl, SYM.map(function(a){ return a.tab; }), true, function(){ return sel.a; }, select);
+  seg(typesEl, TYPES.map(function(t){ return t[0]; }), false, function(){ return sel.t; }, function(i){ sel.t = i; sync(); drawChart(); });
+  seg(rangesEl, RANGES.map(function(r){ return r[0]; }), false, function(){ return sel.r; }, function(i){ sel.r = i; sync(); drawChart(); });
+
+  function sync(){
+    tabsEl._sync(); typesEl._sync(); rangesEl._sync();
+    cards.forEach(function(c, i){ c.classList.toggle('on', i === sel.a); });
+  }
+  function drawChart(){
+    if (!ready) return;
+    var a = SYM[sel.a], r = RANGES[sel.r];
+    mount(chartEl, 'advanced-chart', {autosize: true, symbol: a.s, interval: r[2], range: r[1], timezone: 'Europe/Prague',
+      theme: 'dark', style: String(TYPES[sel.t][1]), locale: 'cs', backgroundColor: 'rgba(14,15,18,1)', gridColor: 'rgba(255,255,255,0.05)',
+      hide_top_toolbar: true, hide_side_toolbar: true, allow_symbol_change: false, save_image: false, hide_volume: true,
+      calendar: false, support_host: 'https://www.tradingview.com'});
+  }
+  function drawInfo(){
+    if (!ready) return;
+    mount(infoEl, 'symbol-info', {symbol: SYM[sel.a].s, width: '100%', locale: 'cs', colorTheme: 'dark', isTransparent: true});
+  }
+  function select(i){ sel.a = i; sync(); drawInfo(); drawChart(); }
+  lazy(chartEl, function(){ ready = true; drawInfo(); drawChart(); });
+  sync();
+
+  lazy($('#spread'), function(){
+    mount($('#spread'), 'advanced-chart', {autosize: true, symbol: 'TVC:UKOIL-TVC:USOIL', interval: 'D', range: '12M', timezone: 'Europe/Prague',
+      theme: 'dark', style: '3', locale: 'cs', backgroundColor: 'rgba(14,15,18,1)', gridColor: 'rgba(255,255,255,0.05)',
+      hide_top_toolbar: true, hide_side_toolbar: true, allow_symbol_change: false, save_image: false, hide_volume: true,
+      calendar: false, support_host: 'https://www.tradingview.com'});
+  });
+
+  lazy($('#cmpchart'), function(){
+    mount($('#cmpchart'), 'advanced-chart', {autosize: true, symbol: SYM[0].s, interval: 'D', range: '12M', timezone: 'Europe/Prague',
+      theme: 'dark', style: '2', locale: 'cs', backgroundColor: 'rgba(14,15,18,1)', gridColor: 'rgba(255,255,255,0.05)',
+      compareSymbols: [{symbol: SYM[1].s, position: 'SameScale'}],
+      hide_top_toolbar: true, hide_side_toolbar: true, allow_symbol_change: false, save_image: false, hide_volume: true,
+      calendar: false, support_host: 'https://www.tradingview.com'});
+  });
+  $('#pulse').innerHTML = PULSE.map(function(p){
+    return '<li><span>' + p[0] + '</span><span class="tag ' + p[2] + '">' + p[1] + '</span></li>';
+  }).join('');
+  document.querySelectorAll('.rv').forEach(function(el){ rv.observe(el); });
+})();
+</script>
+<script>
+/* Block 07: investment scenario calculator (illustrative model); live quote via TradingView */
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var nf0 = new Intl.NumberFormat('cs-CZ', {maximumFractionDigits: 0});
+  var nf2 = new Intl.NumberFormat('cs-CZ', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MIN = 10000, MAX = 500000;
+  var C = {brent: {e: 75, d: 5, u: 'barely', s: 'TVC:UKOIL'}, wti: {e: 70, d: 5, u: 'barely', s: 'TVC:USOIL'}, gas: {e: 3.5, d: .5, u: 'MMBtu', s: 'NYMEX:NG1!'}};
+  var FR = [0, .35, .2, .7, .55, 1];
+  var st, shown = null, raf, started = false;
+
+  function num(v){ return parseFloat(String(v).replace(/[\s\u00a0\u202f]/g, '').replace('−', '-').replace(',', '.')); }
+  function sg(n, f){ return (Math.abs(n) < .005 ? '' : n > 0 ? '+' : '−') + f.format(Math.abs(n)); }
+  function base(){ st.q = st.amt * st.fx * st.lev / st.e; }
+  function fresh(com){
+    var c = C[com];
+    st = {amt: st ? st.amt : 100000, fx: st ? st.fx : 1.1, lev: st ? st.lev : 1, dir: st ? st.dir : 1, com: com, e: c.e, d: c.d, q: 0, manual: false};
+    base();
+  }
+  function target(){
+    var p = st.q * st.d / st.fx;
+    return {q: st.q, p: p, pct: p / st.amt * 100, x: st.e + st.dir * st.d, pos: st.amt * st.lev, dpct: st.dir * st.d / st.e * 100};
+  }
+  function put(id, txt){ var el = $(id); if (document.activeElement !== el) el.value = txt; }
+  function fill(){ $('#k-rng').style.setProperty('--p', (st.amt - MIN) / (MAX - MIN) * 100 + '%'); $('#k-lev').style.setProperty('--p', (st.lev - 1) / 19 * 100 + '%'); }
+  function man(){ $('#k-man').hidden = !st.manual; }
+
+  function chart(s){
+    var up = s.dpct > .005, dn = s.dpct < -.005, mag = up || dn ? Math.min(70, 8 + Math.abs(s.dpct) * 2.8) : 0;
+    var sign = up ? -1 : 1, pts = FR.map(function(k, i){ return [24 + i * 70.4, 95 + sign * k * mag]; });
+    var ln = $('#c-ln'); ln.setAttribute('d', 'M' + pts.map(function(p){ return p[0] + ' ' + p[1]; }).join(' L'));
+    ln.setAttribute('class', 'ln' + (s.p > .5 ? ' up' : s.p < -.5 ? ' dn' : ''));
+    var a = pts[0], b = pts[5];
+    $('#c-ec').setAttribute('cx', a[0]); $('#c-ec').setAttribute('cy', a[1]);
+    $('#c-xc').setAttribute('cx', b[0]); $('#c-xc').setAttribute('cy', b[1]);
+    $('#c-dir').setAttribute('x', a[0] + 10); $('#c-dir').setAttribute('y', a[1] - 12); $('#c-dir').textContent = st.dir > 0 ? 'BUY' : 'SELL';
+    $('#c-et').setAttribute('x', a[0]); $('#c-et').setAttribute('y', 176); $('#c-et').textContent = 'Vstup ' + nf2.format(st.e) + ' USD';
+    $('#c-xt').setAttribute('x', 376); $('#c-xt').setAttribute('y', 176); $('#c-xt').textContent = 'Výstup ' + nf2.format(s.x) + ' USD';
+  }
+  function render(s){
+    put('#k-q', nf0.format(s.q)); put('#k-p', sg(s.p, nf0));
+    var cls = s.p > .5 ? 'gain' : s.p < -.5 ? 'loss' : '';
+    $('#k-p').className = cls;
+    $('#t-x').textContent = nf2.format(s.x) + ' USD'; $('#t-pos').textContent = nf0.format(s.pos) + ' EUR';
+    var tp = $('#t-pct'); tp.textContent = sg(s.pct, nf2) + ' %'; tp.className = cls;
+    chart(s);
+  }
+  function go(t){
+    cancelAnimationFrame(raf);
+    if (!shown || reduce){ shown = t; render(t); return; }
+    var from = shown, t0 = performance.now();
+    (function step(now){
+      var k = Math.min(1, (now - t0) / 400), k2 = 1 - Math.pow(1 - k, 3), s = {};
+      for (var p in t) s[p] = from[p] + (t[p] - from[p]) * k2;
+      shown = s; render(s);
+      if (k < 1) raf = requestAnimationFrame(step); else shown = t;
+    })(t0);
+  }
+  function live(){
+    if (window.TVmount) window.TVmount($('#k-live'), 'single-quote', {symbol: C[st.com].s, width: '100%', colorTheme: 'dark', isTransparent: true, locale: 'cs'});
+  }
+  function load(){
+    $('#k-amt').value = nf0.format(st.amt); $('#k-rng').value = st.amt;
+    $('#k-e').value = st.e; $('#k-d').value = st.d; $('#k-fx').value = st.fx;
+    $('#k-lev').value = st.lev; $('#k-lo').textContent = '1 : ' + st.lev; $('#k-u').textContent = C[st.com].u;
+    fill(); man();
+  }
+  function pressed(sel, test){
+    document.querySelectorAll(sel + ' button').forEach(function(b){ b.setAttribute('aria-pressed', test(b)); });
+  }
+  function setAmt(){ $('#k-rng').value = st.amt; fill(); st.manual = false; base(); man(); go(target()); }
+
+  $('#k-rng').addEventListener('input', function(){ st.amt = +this.value; $('#k-amt').value = nf0.format(st.amt); $('#k-err').hidden = true; setAmt(); });
+  $('#k-amt').addEventListener('input', function(){
+    var v = num(this.value), ok = v >= MIN && v <= MAX;
+    $('#k-err').hidden = ok; if (!ok) return; st.amt = v; setAmt();
+  });
+  $('#k-amt').addEventListener('blur', function(){
+    var v = num(this.value); if (!(v >= MIN)) v = MIN; if (v > MAX) v = MAX;
+    st.amt = v; this.value = nf0.format(v); $('#k-err').hidden = true; setAmt();
+  });
+  $('#k-e').addEventListener('input', function(){ var v = num(this.value); if (!(v > 0)) return; st.e = v; st.manual = false; base(); man(); go(target()); });
+  $('#k-d').addEventListener('input', function(){ var v = num(this.value); if (isNaN(v)) return; st.d = v; go(target()); });
+  $('#k-fx').addEventListener('input', function(){ var v = num(this.value); if (!(v > 0)) return; st.fx = v; st.manual = false; base(); man(); go(target()); });
+  $('#k-lev').addEventListener('input', function(){ st.lev = +this.value; $('#k-lo').textContent = '1 : ' + st.lev; fill(); st.manual = false; base(); man(); go(target()); });
+  $('#k-q').addEventListener('input', function(){ var v = num(this.value); if (!(v > 0)) return; st.q = v; st.manual = true; man(); go(target()); });
+  $('#k-p').addEventListener('input', function(){
+    var v = num(this.value); if (isNaN(v) || !(st.q > 0)) return;
+    st.d = v * st.fx / st.q; $('#k-d').value = st.d.toFixed(2); st.manual = true; man(); go(target());
+  });
+  ['#k-q', '#k-p'].forEach(function(id){ $(id).addEventListener('blur', function(){ render(target()); }); });
+
+  document.querySelectorAll('#c-com button').forEach(function(b){
+    b.onclick = function(){ fresh(b.dataset.k); pressed('#c-com', function(o){ return o === b; }); load(); live(); go(target()); };
+  });
+  document.querySelectorAll('#c-dirs button').forEach(function(b){
+    b.onclick = function(){ st.dir = +b.dataset.d; pressed('#c-dirs', function(o){ return o === b; }); go(target()); };
+  });
+  $('#k-reset').onclick = function(){
+    st = null; fresh('brent');
+    pressed('#c-com', function(o){ return o.dataset.k === 'brent'; }); pressed('#c-dirs', function(o){ return o.dataset.d === '1'; });
+    load(); live(); go(target());
+  };
+
+  fresh('brent'); load(); go(target());
+  new IntersectionObserver(function(es, o){
+    if (!es[0].isIntersecting) return;
+    o.disconnect(); started = true; live();
+    var t = target(); shown = {q: 0, p: 0, pct: 0, x: st.e, pos: 0, dpct: 0}; go(t);
+  }, {threshold: .25}).observe($('#calc'));
+})();
+</script>
+<script>
+/* Block 09: cinematic background + contact form (opens WhatsApp with the message prefilled) */
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cv = $('#c9'), ctx = cv.getContext('2d'), W, H, P = [], run = false;
+  function size(){
+    var d = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    P = []; for (var i = 0; i < 60; i++) P.push({x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + .4,
+      v: Math.random() * .12 + .03, a: Math.random() * .5 + .15, c: Math.random() < .65 ? '255,162,31' : '39,214,245'});
+  }
+  function frame(now){
+    var t = now || 0;
+    ctx.clearRect(0, 0, W, H);
+    [[.5, 1.5, .4], [.62, 1, .22]].forEach(function(l, k){
+      var g = ctx.createLinearGradient(0, 0, W, 0);
+      g.addColorStop(0, 'rgba(39,214,245,0)'); g.addColorStop(.3, 'rgba(39,214,245,' + l[2] + ')');
+      g.addColorStop(.7, 'rgba(255,162,31,' + l[2] + ')'); g.addColorStop(1, 'rgba(255,162,31,0)');
+      ctx.beginPath();
+      for (var x = 0; x <= W; x += 6){
+        var y = H * l[0] + Math.sin(x * .006 + t * .0003 + k) * 28 + Math.sin(x * .017 + t * .0005) * 12 + Math.sin(x * .0031 + t * .0002) * 36;
+        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.strokeStyle = g; ctx.lineWidth = l[1]; ctx.stroke();
+    });
+    P.forEach(function(p){
+      p.y -= p.v; if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fillStyle = 'rgba(' + p.c + ',' + p.a + ')'; ctx.fill();
+    });
+    if (run && !reduce) requestAnimationFrame(frame);
+  }
+  size(); frame(0);
+  addEventListener('resize', function(){ size(); frame(0); });
+  new IntersectionObserver(function(es){
+    var vis = es[0].isIntersecting;
+    if (vis && !run){ run = true; if (!reduce) requestAnimationFrame(frame); }
+    run = vis;
+  }).observe($('#kontakt-final'));
+
+  /* Form */
+  var form = $('#formular'), WA = 'https://wa.me/420602855173';
+  function err(id, msg){ var el = $('#' + id); $('#e-' + id).textContent = msg; el.setAttribute('aria-invalid', msg ? 'true' : 'false'); return !msg; }
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var n = $('#f-name').value.trim(), m = $('#f-mail').value.trim(), tel = $('#f-tel').value.trim(), msg = $('#f-msg').value.trim();
+    var a = err('f-name', n ? '' : 'Zadejte své jméno.');
+    var b = err('f-mail', /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m) ? '' : 'Zadejte platný e-mail.');
+    var c = err('f-ok', $('#f-ok').checked ? '' : 'Potvrďte souhlas se zpracováním osobních údajů.');
+    if (!(a && b && c)){ form.querySelector('[aria-invalid=true]').focus(); return; }
+    var text = 'Dobrý den, mám zájem o více informací o projektu.\nJméno: ' + n + '\nE-mail: ' + m +
+      (tel ? '\nTelefon: ' + tel : '') + (msg ? '\nZpráva: ' + msg : '');
+    var url = WA + '?text=' + encodeURIComponent(text);
+    window.open(url, '_blank', 'noopener');
+    $('#thx-link').href = url; $('#ff').hidden = true; $('#thx').hidden = false; $('#thx').focus();
+  });
+})();
+</script>
+<script>
+/* Header: scrolled state, mobile menu, active section highlight */
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var top = $('#top'), btn = $('#burger'), menu = $('#menu');
+  function setOpen(o){
+    menu.classList.toggle('open', o); btn.setAttribute('aria-expanded', o);
+    btn.setAttribute('aria-label', o ? 'Zavřít menu' : 'Otevřít menu'); document.body.classList.toggle('mo', o);
+  }
+  btn.onclick = function(){ setOpen(!menu.classList.contains('open')); };
+  menu.addEventListener('click', function(e){ if (e.target.closest('a')) setOpen(false); });
+  addEventListener('keydown', function(e){ if (e.key === 'Escape') setOpen(false); });
+  addEventListener('resize', function(){ if (innerWidth > 1100) setOpen(false); });
+  function sc(){ top.classList.toggle('s', scrollY > 40); }
+  addEventListener('scroll', sc, {passive: true}); sc();
+
+  var links = {};
+  menu.querySelectorAll('a[href^="#"]:not(.btn)').forEach(function(a){ links[a.getAttribute('href').slice(1)] = a; });
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if (!e.isIntersecting) return;
+      for (var k in links) links[k].classList.remove('on');
+      if (links[e.target.id]) links[e.target.id].classList.add('on');
+    });
+  }, {rootMargin: '-45% 0px -50% 0px'});
+  Object.keys(links).forEach(function(id){ var s = document.getElementById(id); if (s) io.observe(s); });
+})();
+</script>
+</body>
+</html>
